@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Details | AutoTrade</title>
+  <meta name="description" content="View full details, specifications, and contact the seller on AutoTrade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="cars.css">
+  <script src="data.js" defer></script>
+  <script src="main.js" defer></script>
+  <script src="cars.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header style="position:sticky;">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Auto<span>Trade</span></a>
+      <button class="menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      <nav class="nav-links" id="nav-links">
+        <a href="index.html">Home</a>
+        <a href="categories.html?type=all" class="active">Browse Cars</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="sell.html" class="nav-sell-btn">Sell My Car</a>
+      </nav>
+      <a href="admin-login.html" class="admin-access-btn" title="Admin Panel">
+        <span>⚙</span><span>Admin</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="container breadcrumb-inner">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <a href="categories.html?type=all" id="breadcrumb-category">Browse</a>
+      <span>›</span>
+      <span class="crumb-current">Car Details</span>
+    </div>
+  </div>
+
+  <!-- Car Details — injected by cars.js -->
+  <main class="container">
+    <div class="details-wrap" id="car-detail-container">
+      <div style="padding:3rem; grid-column:1/-1; text-align:center;">
+        <p style="color:var(--text-muted);">Loading car details...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-bottom" style="border:none; padding:0;">
+        <p>© 2026 AutoTrade. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="categories.html?type=all">← Back to Listings</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

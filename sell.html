@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Your Car | AutoTrade</title>
+  <meta name="description" content="Post your car ad on AutoTrade. Fast, easy, and free. Connect with thousands of buyers today.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js" defer></script>
+  <script src="main.js" defer></script>
+  <script src="sell.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header style="position:sticky;">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Auto<span>Trade</span></a>
+      <button class="menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      <nav class="nav-links" id="nav-links">
+        <a href="index.html">Home</a>
+        <a href="categories.html?type=all">Browse Cars</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="sell.html" class="active nav-sell-btn">Sell My Car</a>
+      </nav>
+      <a href="admin-login.html" class="admin-access-btn" title="Admin Panel">
+        <span>⚙</span><span>Admin</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Page Hero -->
+  <div class="page-hero" style="margin-top:0;">
+    <div class="container">
+      <h1>Post Your Ad</h1>
+      <p>Enter the details below and your car will be visible to thousands of buyers</p>
+    </div>
+  </div>
+
+  <!-- Sell Form -->
+  <main class="sell-page-layout">
+    <div class="form-card">
+      <h2>Listing Details</h2>
+      <p class="form-desc">Fields marked with <span style="color:var(--color-danger);">*</span> are required.</p>
+
+      <form id="sell-car-form" novalidate>
+
+        <!-- Vehicle Info -->
+        <p class="form-section-title">Vehicle Information</p>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="car-make-search">Make <span class="required">*</span></label>
+            <div class="searchable-select" id="make-searchable">
+              <div class="ss-input-wrap">
+                <input type="text" id="car-make-search" class="form-control ss-input" placeholder="Search make..." autocomplete="off" aria-haspopup="listbox" aria-expanded="false">
+                <span class="ss-arrow">▾</span>
+              </div>
+              <ul class="ss-dropdown" id="make-dropdown" role="listbox"></ul>
+              <!-- Hidden real value sent to JS -->
+              <input type="hidden" id="car-make" value="" data-name="">
+            </div>
+            <span class="form-error" id="err-car-make"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-model-search">Model <span class="required">*</span></label>
+            <div class="searchable-select" id="model-searchable">
+              <div class="ss-input-wrap">
+                <input type="text" id="car-model-search" class="form-control ss-input" placeholder="Select make first" autocomplete="off" disabled aria-haspopup="listbox" aria-expanded="false">
+                <span class="ss-arrow">▾</span>
+              </div>
+              <ul class="ss-dropdown" id="model-dropdown" role="listbox"></ul>
+              <!-- Hidden real value sent to JS -->
+              <input type="hidden" id="car-model" value="">
+            </div>
+            <span class="form-error" id="err-car-model"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-category">Category <span class="required">*</span></label>
+            <select id="car-category" class="form-control" required>
+              <option value="" disabled selected>Select Category</option>
+              <option value="suv">SUV</option>
+              <option value="sedan">Sedan</option>
+              <option value="hatchback">Hatchback</option>
+            </select>
+            <span class="form-error" id="err-car-category"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-year">Year of Manufacture <span class="required">*</span></label>
+            <input type="number" id="car-year" class="form-control" placeholder="e.g. 2021" min="1990" max="2026" required>
+            <span class="form-error" id="err-car-year"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-mileage">Mileage (km) <span class="required">*</span></label>
+            <input type="text" id="car-mileage" class="form-control" placeholder="e.g. 45000" required>
+            <span class="form-error" id="err-car-mileage"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-price">Asking Price (EGP) <span class="required">*</span></label>
+            <input type="text" id="car-price" class="form-control" placeholder="e.g. 450000" required>
+            <span class="form-error" id="err-car-price"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="car-transmission">Transmission</label>
+            <select id="car-transmission" class="form-control">
+              <option value="Automatic">Automatic</option>
+              <option value="Manual">Manual</option>
+              <option value="CVT">CVT</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="car-fuel">Fuel Type</label>
+            <select id="car-fuel" class="form-control">
+              <option value="Gasoline">Gasoline</option>
+              <option value="Diesel">Diesel</option>
+              <option value="Electric">Electric</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="car-color">Color</label>
+            <input type="text" id="car-color" class="form-control" placeholder="e.g. White, Black, Grey">
+          </div>
+
+          <div class="form-group">
+            <label for="car-engine">Engine</label>
+            <input type="text" id="car-engine" class="form-control" placeholder="e.g. 1.6L 4-Cylinder">
+          </div>
+
+          <div class="form-group">
+            <label for="car-city">City</label>
+            <select id="car-city" class="form-control">
+              <option value="">Select City</option>
+              <option>Cairo</option>
+              <option>Giza</option>
+              <option>Alexandria</option>
+              <option>New Cairo</option>
+              <option>6th of October</option>
+              <option>Mansoura</option>
+              <option>Tanta</option>
+              <option>Assiut</option>
+              <option>Luxor</option>
+              <option>Aswan</option>
+              <option>Zagazig</option>
+              <option>Port Said</option>
+              <option>Suez</option>
+              <option>Hurghada</option>
+              <option>Sharm El Sheikh</option>
+            </select>
+          </div>
+
+        </div>
+
+        <hr class="form-divider">
+
+        <!-- Seller Comment -->
+        <p class="form-section-title">Seller's Note</p>
+        <div class="form-group full-width" style="margin-bottom:1.5rem;">
+          <label for="car-comment">Additional Description (Optional)</label>
+          <textarea id="car-comment" class="form-control" rows="3"
+                    placeholder="e.g. Car is well-maintained, one owner, regular dealership maintenance." maxlength="500"></textarea>
+          <span style="font-size:.75rem; color:var(--text-muted); margin-top:.25rem; display:block;">This description appears on the car's detail page for buyers.</span>
+        </div>
+
+        <hr class="form-divider">
+
+        <!-- Photo Upload -->
+        <p class="form-section-title">Car Photo</p>
+        <div class="form-group full-width" style="margin-bottom:1.5rem;">
+          <div class="photo-upload-area" id="photo-upload-area">
+            <input type="file" id="car-photo-input" accept="image/*" aria-label="Upload car photo">
+            <span class="photo-upload-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </span>
+            <p><strong>Click to upload</strong> or drag and drop image</p>
+            <p style="font-size:.78rem; margin-top:.3rem; color:var(--text-muted);">PNG, JPG up to 10MB</p>
+            <p style="font-size:.75rem; color:var(--text-muted); margin-top:.5rem;">(If left empty, a placeholder photo will be automatically generated)</p>
+            <div class="photo-preview-container" id="photo-preview-container">
+              <img id="photo-preview" class="photo-preview" alt="Car photo preview" src="">
+            </div>
+          </div>
+          <span class="form-error" id="err-car-photo" style="display:block; margin-top:.5rem;"></span>
+        </div>
+
+        <hr class="form-divider">
+
+        <!-- Seller Info -->
+        <p class="form-section-title">Contact Details</p>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="seller-name">Full Name <span class="required">*</span></label>
+            <input type="text" id="seller-name" class="form-control" placeholder="Full Name" required autocomplete="name">
+            <span class="form-error" id="err-seller-name"></span>
+            <span class="field-hint" id="hint-seller-name">Only letters and spaces are allowed.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="seller-phone">Phone Number <span class="required">*</span></label>
+            <input type="tel" id="seller-phone" class="form-control" placeholder="e.g. 01012345678" required autocomplete="tel">
+            <span class="form-error" id="err-seller-phone"></span>
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-listing-btn" style="margin-top:2rem;">
+          Publish Ad
+        </button>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-bottom" style="border:none; padding:0;">
+        <p>© 2026 AutoTrade. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

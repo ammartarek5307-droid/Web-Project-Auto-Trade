@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTrade | Find Your Dream Car</title>
+  <meta name="description" content="AutoTrade — Browse thousands of premium cars in Egypt. SUV, Sedan, Hatchback. Sell your car quickly.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="cars.css">
+  <script src="data.js" defer></script>
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header id="main-header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo" id="logo">Auto<span>Trade</span></a>
+      <button class="menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      <nav class="nav-links" id="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="categories.html?type=all">Browse Cars</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="sell.html" class="nav-sell-btn">Sell My Car</a>
+      </nav>
+      <a href="admin-login.html" class="admin-access-btn" id="admin-access-btn" title="Admin Panel">
+        <span>⚙</span>
+        <span>Admin</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1920&q=85" alt="Premium sports car">
+    </div>
+    <div class="container">
+      <div class="hero-badge">Egypt's #1 Car Marketplace</div>
+      <h1>Find your <span>dream car.</span><br>Trade with confidence.</h1>
+      <p>Browse thousands of verified cars from trusted sellers across Egypt. Transparent pricing, real photos.</p>
+      <div class="hero-actions">
+        <a href="categories.html?type=all" class="btn btn-primary btn-lg" id="hero-browse-btn">Browse Inventory</a>
+        <a href="sell.html" class="btn btn-outline btn-lg" id="hero-sell-btn">Sell Your Car</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">500+</span>
+          <span class="hero-stat-label">Listed Cars</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">1,400+</span>
+          <span class="hero-stat-label">Active Users</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">98%</span>
+          <span class="hero-stat-label">Satisfaction</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shop by Category -->
+  <section style="background:var(--color-bg-alt); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="container">
+      <div style="margin-bottom:2.5rem; text-align:center;">
+        <span class="section-label">Browse by Type</span>
+        <h2 class="section-title">Select a Category</h2>
+        <p class="section-subtitle">Find exactly what you are looking for</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem;">
+
+        <a href="categories.html?type=suv" class="cat-card" id="cat-suv">
+          <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80" alt="SUVs">
+          <div class="cat-card-overlay">
+            <div>
+              <h3>SUV</h3>
+              <span>Spacious & Powerful</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="categories.html?type=sedan" class="cat-card" id="cat-sedan">
+          <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=800&q=80" alt="Sedans">
+          <div class="cat-card-overlay">
+            <div>
+              <h3>Sedan</h3>
+              <span>Elegant & Comfortable</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="categories.html?type=hatchback" class="cat-card" id="cat-hatchback">
+          <img src="https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=800&q=80" alt="Hatchbacks">
+          <div class="cat-card-overlay">
+            <div>
+              <h3>Hatchback</h3>
+              <span>Practical & Economical</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Latest Arrivals -->
+  <section style="background:var(--color-bg);">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <span class="section-label">Latest Listings</span>
+          <h2 class="section-title" style="margin-bottom:0;">New Arrivals</h2>
+        </div>
+        <a href="categories.html?type=all" class="btn btn-outline" id="view-all-btn">View All →</a>
+      </div>
+      <div class="grid" id="latest-cars-grid">
+        <!-- Injected by main.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Why AutoTrade -->
+  <section class="features-section">
+    <div class="container">
+      <div style="margin-bottom:2.5rem; text-align:center;">
+        <span class="section-label">Why AutoTrade</span>
+        <h2 class="section-title">Built for serious car buyers</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1.25rem;">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Verified Listings</h3>
+          <p>Every listing is reviewed before being published on our platform.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Direct Contact</h3>
+          <p>Connect with sellers directly — no middlemen or hidden fees.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3>Publish in Minutes</h3>
+          <p>Sell your car quickly using our 2-minute easy listing form.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <h3>Save Favorites</h3>
+          <p>Save the cars you like and return to them anytime.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="logo">Auto<span>Trade</span></span>
+          <p>Your trusted platform to buy and sell premium cars in Egypt. Transparent pricing, real photos.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Browse</h4>
+          <ul>
+            <li><a href="categories.html?type=all">All Cars</a></li>
+            <li><a href="categories.html?type=suv">SUV</a></li>
+            <li><a href="categories.html?type=sedan">Sedan</a></li>
+            <li><a href="categories.html?type=hatchback">Hatchback</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <ul>
+            <li><a href="sell.html">Sell My Car</a></li>
+            <li><a href="favorites.html">My Favorites</a></li>
+            <li><a href="admin-login.html">Admin Dashboard</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 AutoTrade. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Header scroll effect
+    window.addEventListener('scroll', () => {
+      document.getElementById('main-header')?.classList.toggle('scrolled', window.scrollY > 50);
+    });
+  </script>
+
+</body>
+</html>
