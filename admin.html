@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | AutoTrade</title>
+  <meta name="description" content="AutoTrade — Manage listings, users, and reports.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+  <script src="data.js" defer></script>
+  <script src="main.js" defer></script>
+  <script src="admin.js" defer></script>
+</head>
+<body class="admin-body">
+
+  <!-- Admin Header -->
+  <header class="admin-header">
+    <div class="container nav-container" style="max-width:100%; padding:0 2rem;">
+      <a href="index.html" class="logo">AutoTrade <span style="font-size:.8rem; font-weight:500; color:rgba(255,255,255,.35); -webkit-text-fill-color:rgba(255,255,255,.35);">Admin</span></a>
+      <nav class="nav-links">
+        <a href="index.html">← Main Site</a>
+        <button class="btn btn-danger btn-sm" id="admin-logout-btn" style="margin-left:.5rem;">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Admin Layout -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+
+      <p class="admin-sidebar-label">Main</p>
+      <ul class="admin-nav">
+        <li>
+          <a href="#" data-section="overview" id="nav-overview">
+            <span class="nav-icon"></span> Overview
+          </a>
+        </li>
+        <li>
+          <a href="#" data-section="listings" id="nav-listings">
+            <span class="nav-icon"></span> Listings
+          </a>
+        </li>
+        <li>
+          <a href="#" data-section="users" id="nav-users">
+            <span class="nav-icon"></span> Users
+          </a>
+        </li>
+      </ul>
+
+      <p class="admin-sidebar-label">Moderation</p>
+      <ul class="admin-nav">
+        <li>
+          <a href="#" data-section="reports" id="nav-reports">
+            <span class="nav-icon"></span> Reports
+          </a>
+        </li>
+        <li>
+          <a href="#" data-section="analytics" id="nav-analytics">
+            <span class="nav-icon"></span> Analytics
+          </a>
+        </li>
+      </ul>
+
+      <p class="admin-sidebar-label">System</p>
+      <ul class="admin-nav">
+        <li>
+          <a href="#" data-section="settings" id="nav-settings">
+            <span class="nav-icon"></span> Settings
+          </a>
+        </li>
+      </ul>
+
+      <!-- Admin info -->
+      <div class="admin-sidebar-bottom">
+        <div style="display:flex; align-items:center; gap:.75rem; padding:.5rem .8rem;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(14,165,233,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#7dd3fc;font-weight:800;flex-shrink:0;">A</div>
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:rgba(255,255,255,.8);">Admin</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.35);">System Administrator</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- ── OVERVIEW ── -->
+      <section class="admin-section" id="section-overview">
+        <div class="admin-page-header">
+          <div>
+            <h1>Overview</h1>
+            <p>Welcome back. Here is what is happening today.</p>
+          </div>
+          <div style="font-size:.82rem; color:var(--text-muted);">Last updated: Just now</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-card-header">
+              <h4>Total Listings</h4>
+              <span class="stat-card-icon"></span>
+            </div>
+            <div class="number" id="stat-total-cars">—</div>
+            <div class="stat-change">↑ 8 this week</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-card-header">
+              <h4>Private Ads</h4>
+              <span class="stat-card-icon"></span>
+            </div>
+            <div class="number" id="stat-user-listings">—</div>
+            <div class="stat-change">↑ 5 this month</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-card-header">
+              <h4>Pending Approval</h4>
+              <span class="stat-card-icon"></span>
+            </div>
+            <div class="number" id="stat-pending-ads">—</div>
+            <div class="stat-change" style="color:var(--color-warning);">Awaiting review</div>
+          </div>
+          <div class="stat-card orange" style="--card-accent:var(--color-danger);">
+            <div class="stat-card-header">
+              <h4>Open Reports</h4>
+              <span class="stat-card-icon"></span>
+            </div>
+            <div class="number" id="stat-open-reports">—</div>
+            <div class="stat-change" style="color:var(--color-warning);">Needs review</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-card-header">
+              <h4>Active Users</h4>
+              <span class="stat-card-icon"></span>
+            </div>
+            <div class="number">1,402</div>
+            <div class="stat-change">↑ 12% this month</div>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h3>Recent Activity</h3>
+            <span style="font-size:.8rem; color:var(--text-muted);">Live feed</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>User</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="activity-tbody">
+              <!-- Injected by admin.js renderRecentActivity() -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── LISTINGS ── -->
+      <section class="admin-section" id="section-listings">
+        <div class="admin-page-header">
+          <div>
+            <h1>Listings</h1>
+            <p>View, approve, and remove car advertisements.</p>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h3>All Listings</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Mileage</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="listings-tbody">
+                <!-- Injected by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── USERS ── -->
+      <section class="admin-section" id="section-users">
+        <div class="admin-page-header">
+          <div>
+            <h1>User Overview</h1>
+            <p>View registered users and their car listings.</p>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h3>Registered Users</h3>
+            <span style="font-size:.82rem; color:var(--text-muted);" id="users-count">Loading...</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Phone</th>
+                  <th>Listings</th>
+                  <th>Car Details</th>
+                  <th>Joined Date</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <!-- Injected by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── REPORTS ── -->
+      <section class="admin-section" id="section-reports">
+        <div class="admin-page-header">
+          <div>
+            <h1>Reports</h1>
+            <p>Review user-submitted reports and take action.</p>
+          </div>
+          <span class="status-badge pending" id="reports-open-count" style="padding:.4rem 1rem; font-size:.82rem;">—</span>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h3>All Reports</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Vehicle</th>
+                  <th>Reporter</th>
+                  <th>Reason</th>
+                  <th>Details</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reports-tbody">
+                <!-- Injected by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ANALYTICS ── -->
+      <section class="admin-section" id="section-analytics">
+        <div class="admin-page-header">
+          <div>
+            <h1>Analytics</h1>
+            <p>Platform performance overview for the last 30 days.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.25rem; margin-bottom:2rem;">
+          <div class="stat-card blue">
+            <div class="stat-card-header"><h4>Total Visits</h4><span class="stat-card-icon"></span></div>
+            <div class="number">24,580</div>
+            <div class="stat-change">↑ 18% compared to last month</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-card-header"><h4>Avg Session Time</h4><span class="stat-card-icon"></span></div>
+            <div class="number">4m 32s</div>
+            <div class="stat-change">↑ 8% improvement</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-card-header"><h4>Conversion Rate</h4><span class="stat-card-icon"></span></div>
+            <div class="number">3.8%</div>
+            <div class="stat-change">↑ 0.4% increase</div>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <h3>Listings by Category</h3>
+          </div>
+          <div class="analytics-bar-chart" id="analytics-chart">
+            <!-- Injected by admin.js -->
+          </div>
+        </div>
+
+        <div class="admin-panel" style="margin-top:1.5rem;">
+          <div class="admin-panel-header">
+            <h3>Top Performing Ads</h3>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Category</th>
+                <th>Views</th>
+                <th>Inquiries</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Toyota Land Cruiser GXR</td><td>SUV</td><td>1,240</td><td>38</td></tr>
+              <tr><td>Toyota Camry</td><td>Sedan</td><td>960</td><td>29</td></tr>
+              <tr><td>Hyundai Tucson 2.0</td><td>SUV</td><td>880</td><td>22</td></tr>
+              <tr><td>Hyundai Elantra</td><td>Sedan</td><td>720</td><td>19</td></tr>
+              <tr><td>Toyota Yaris</td><td>Hatchback</td><td>650</td><td>14</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── SETTINGS ── -->
+      <section class="admin-section" id="section-settings">
+        <div class="admin-page-header">
+          <div>
+            <h1>System Settings</h1>
+            <p>Manage platform preferences and configuration.</p>
+          </div>
+        </div>
+
+        <div class="admin-panel" style="max-width:640px;">
+          <div class="admin-panel-header">
+            <h3>Platform Settings</h3>
+          </div>
+          <div style="padding:1.5rem; display:flex; flex-direction:column; gap:1.5rem;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:1.2rem; border-bottom:1px solid var(--border-light);">
+              <div>
+                <div style="font-weight:700; margin-bottom:.2rem;">Manual Ad Approval</div>
+                <div style="font-size:.83rem; color:var(--text-muted);">New listings require manual approval before publishing.</div>
+              </div>
+              <label style="cursor:pointer;">
+                <input type="checkbox" checked id="setting-approval" style="accent-color:var(--color-sky-blue); width:18px; height:18px;">
+              </label>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:1.2rem; border-bottom:1px solid var(--border-light);">
+              <div>
+                <div style="font-weight:700; margin-bottom:.2rem;">Allow New Registrations</div>
+                <div style="font-size:.83rem; color:var(--text-muted);">New users can create accounts on the platform.</div>
+              </div>
+              <label style="cursor:pointer;">
+                <input type="checkbox" checked id="setting-registration" style="accent-color:var(--color-sky-blue); width:18px; height:18px;">
+              </label>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div>
+                <div style="font-weight:700; margin-bottom:.2rem;">Email Notifications</div>
+                <div style="font-size:.83rem; color:var(--text-muted);">Receive alerts for new reports and listings.</div>
+              </div>
+              <label style="cursor:pointer;">
+                <input type="checkbox" checked id="setting-email" style="accent-color:var(--color-sky-blue); width:18px; height:18px;">
+              </label>
+            </div>
+
+            <button class="btn btn-primary" id="save-settings-btn">
+              Save Settings
+            </button>
+
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>
