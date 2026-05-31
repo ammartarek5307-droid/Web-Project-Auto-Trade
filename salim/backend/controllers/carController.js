@@ -1,11 +1,13 @@
 const Car = require('../models/Car');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 60 }); // Cache for 60 seconds
 
 // ============================================
 // GET /api/cars  — Public: approved listings
 // ============================================
-const getCars = async (req, res) => {
+const getCars = async (req, res, next) => {
   try {
-    const { category, minPrice, maxPrice, city, sort } = req.query;
+    const { category, minPrice, maxPrice, city, sort, page = 1, limit = 10 } = req.query;
     const filter = { status: 'approved' };
 
     if (category && category !== 'all') filter.category = category;
@@ -21,11 +23,30 @@ const getCars = async (req, res) => {
     if (sort === 'price_desc') sortOption = { price: -1 };
     if (sort === 'mileage_asc') sortOption = { mileage: 1 };
 
-    const cars = await Car.find(filter).sort(sortOption);
-    return res.json({ success: true, cars });
+    const cacheKey = `cars_${JSON.stringify(req.query)}`;
+    if (cache.has(cacheKey)) {
+      return res.json(cache.get(cacheKey));
+    }
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const startIndex = (pageNum - 1) * limitNum;
+
+    const total = await Car.countDocuments(filter);
+    const cars = await Car.find(filter).sort(sortOption).skip(startIndex).limit(limitNum);
+
+    const pagination = {
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / limitNum),
+    };
+
+    const responseData = { success: true, count: cars.length, pagination, cars };
+    cache.set(cacheKey, responseData);
+
+    return res.json(responseData);
   } catch (err) {
-    console.error('Get cars error:', err);
-    return res.status(500).json({ success: false, error: 'Server error.' });
+    return next(err);
   }
 };
 
@@ -62,11 +83,18 @@ const createCar = async (req, res) => {
     const {
       make, model, category, subType, year, mileage, price,
       transmission, fuel, color, engine, city, description,
-      image, images, sellerName, sellerPhone, sellerId,
+      images, sellerName, sellerPhone, sellerId,
     } = req.body;
 
     if (!make || !model || !category || !year || !mileage || !price) {
       return res.status(400).json({ success: false, error: 'Required fields are missing.' });
+    }
+
+    let imagePath = '';
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    } else if (req.body.image) {
+      imagePath = req.body.image;
     }
 
     const car = await Car.create({
@@ -75,7 +103,7 @@ const createCar = async (req, res) => {
       price: Number(price),
       transmission, fuel, color, engine, city,
       description,
-      image: image || '',
+      image: imagePath,
       images: images || [],
       isUserListed: true,
       status: 'pending',
@@ -104,7 +132,24 @@ const approveCar = async (req, res) => {
     if (!car) return res.status(404).json({ success: false, error: 'Car not found.' });
     return res.json({ success: true, car });
   } catch (err) {
-    return res.status(500).json({ success: false, error: 'Server error.' });
+    return next(err);
+  }
+};
+
+// ============================================
+// PUT /api/cars/:id  — Update listing
+// ============================================
+const updateCar = async (req, res, next) => {
+  try {
+    let updateData = { ...req.body };
+    if (req.file) {
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
+    const car = await Car.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!car) return res.status(404).json({ success: false, error: 'Car not found.' });
+    return res.json({ success: true, car });
+  } catch (err) {
+    return next(err);
   }
 };
 
@@ -143,4 +188,4 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getCars, getAllCarsAdmin, getCarById, createCar, approveCar, deleteCar, getStats };
+module.exports = { getCars, getAllCarsAdmin, getCarById, createCar, approveCar, updateCar, deleteCar, getStats };

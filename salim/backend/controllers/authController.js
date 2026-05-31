@@ -138,7 +138,25 @@ const getMe = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
     return res.json({ success: true, user });
   } catch (err) {
-    return res.status(500).json({ success: false, error: 'Server error.' });
+    return next(err);
+  }
+};
+
+// ============================================
+// PUT /api/auth/profile   (protected)
+// ============================================
+const updateProfile = async (req, res, next) => {
+  try {
+    const { phone, themePreference } = req.body;
+    let updateData = {};
+    if (phone) updateData.phone = phone;
+    if (themePreference) updateData.themePreference = themePreference;
+
+    const user = await User.findByIdAndUpdate(req.user.id, updateData, { new: true }).select('-passwordHash');
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+    return res.json({ success: true, user });
+  } catch (err) {
+    return next(err);
   }
 };
 
@@ -190,4 +208,4 @@ const unbanUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, getAllUsers, banUser, unbanUser };
+module.exports = { registerUser, loginUser, getMe, updateProfile, getAllUsers, banUser, unbanUser };
