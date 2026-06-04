@@ -1,140 +1,34 @@
 'use strict';
 
 // ============================================
-// MESSAGING SYSTEM — Internal 1-to-1 Chat
+// MESSAGING SYSTEM — Backed by MongoDB API
 // ============================================
 
-// ── Message Store ──
-function getMessages() {
-  try { return JSON.parse(localStorage.getItem('at_messages')) || []; }
-  catch { return []; }
-}
+// ── API Helpers ──
+async function fetchApi(url, options = {}) {
+  const token = localStorage.getItem('at_token');
+  if (!token) return { success: false, error: 'Not authenticated' };
 
-function saveMessages(messages) {
-  localStorage.setItem('at_messages', JSON.stringify(messages));
-}
-
-function getConversations() {
-  try { return JSON.parse(localStorage.getItem('at_conversations')) || []; }
-  catch { return []; }
-}
-
-function saveConversations(conversations) {
-  localStorage.setItem('at_conversations', JSON.stringify(conversations));
-}
-
-// ── Create or get conversation ──
-function getOrCreateConversation(userId1, userId2, listingId) {
-  const convos = getConversations();
-
-  // Find existing conversation between these two users (optionally for a listing)
-  let convo = convos.find(c =>
-    ((c.user1 === userId1 && c.user2 === userId2) ||
-     (c.user1 === userId2 && c.user2 === userId1))
-  );
-
-  if (!convo) {
-    convo = {
-      id: 'CONV-' + Date.now(),
-      user1: userId1,
-      user2: userId2,
-      listingId: listingId || null,
-      createdAt: new Date().toISOString(),
-      lastMessageAt: null,
-      lastMessagePreview: '',
-    };
-    convos.push(convo);
-    saveConversations(convos);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    return res.json();
+  } catch (err) {
+    console.error('API Fetch error:', err);
+    return { success: false, error: 'Network error' };
   }
-
-  return convo;
-}
-
-// ── Send a message ──
-function sendMessage(conversationId, senderId, recipientId, body, listingId) {
-  const messages = getMessages();
-  const msg = {
-    id: 'MSG-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-    conversationId,
-    senderId,
-    recipientId,
-    listingId: listingId || null,
-    body: body.trim(),
-    createdAt: new Date().toISOString(),
-    readAt: null,
-  };
-  messages.push(msg);
-  saveMessages(messages);
-
-  // Update conversation
-  const convos = getConversations();
-  const convo = convos.find(c => c.id === conversationId);
-  if (convo) {
-    convo.lastMessageAt = msg.createdAt;
-    convo.lastMessagePreview = body.length > 50 ? body.substring(0, 50) + '...' : body;
-    saveConversations(convos);
-  }
-
-  return msg;
-}
-
-// ── Get messages for a conversation ──
-function getConversationMessages(conversationId) {
-  return getMessages().filter(m => m.conversationId === conversationId);
-}
-
-// ── Mark messages as read ──
-function markMessagesAsRead(conversationId, userId) {
-  const messages = getMessages();
-  let changed = false;
-  messages.forEach(m => {
-    if (m.conversationId === conversationId && m.recipientId === userId && !m.readAt) {
-      m.readAt = new Date().toISOString();
-      changed = true;
-    }
-  });
-  if (changed) saveMessages(messages);
 }
 
 // ── Get unread count for user ──
-function getUnreadCountForUser(userId) {
-  return getMessages().filter(m => m.recipientId === userId && !m.readAt).length;
-}
-
-// ── Get user's conversations with metadata ──
-function getUserConversations(userId) {
-  const convos = getConversations().filter(c => c.user1 === userId || c.user2 === userId);
-  const messages = getMessages();
-  const users = typeof getUsers === 'function' ? getUsers() : [];
-
-  return convos.map(c => {
-    const otherUserId = c.user1 === userId ? c.user2 : c.user1;
-    const otherUser = users.find(u => u.id === otherUserId);
-    const convoMessages = messages.filter(m => m.conversationId === c.id);
-    const unread = convoMessages.filter(m => m.recipientId === userId && !m.readAt).length;
-    const lastMsg = convoMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
-    // Get listing info if exists
-    let listingInfo = null;
-    if (c.listingId) {
-      const allCars = typeof getAllCars === 'function' ? getAllCars() : [];
-      const car = allCars.find(car => car.id === c.listingId || car.id === parseInt(c.listingId));
-      if (car) listingInfo = { id: car.id, name: `${car.make} ${car.model}`, price: car.price };
-    }
-
-    return {
-      ...c,
-      otherUser: otherUser ? { id: otherUser.id, username: otherUser.username } : { id: otherUserId, username: 'Unknown User' },
-      unreadCount: unread,
-      lastMessage: lastMsg || null,
-      listingInfo,
-      messageCount: convoMessages.length,
-    };
-  }).sort((a, b) => {
-    const dateA = a.lastMessage ? new Date(a.lastMessage.createdAt) : new Date(a.createdAt);
-    const dateB = b.lastMessage ? new Date(b.lastMessage.createdAt) : new Date(b.createdAt);
-    return dateB - dateA;
-  });
+async function getUnreadCountForUser() {
+  const data = await fetchApi('/api/messages/unread-count');
+  return data.success ? data.count : 0;
 }
 
 // ── Open Message Seller Modal ──
@@ -153,20 +47,16 @@ function openMessageSellerModal(carId, carName) {
     return;
   }
 
-  // Prevent messaging yourself
   // Find seller in users list
-  const users = getUsers();
-  const allSellers = getRegisteredSellers();
+  const users = typeof getUsers === 'function' ? getUsers() : [];
+  const allSellers = typeof getRegisteredSellers === 'function' ? getRegisteredSellers() : [];
 
   let sellerUser = null;
-
-  // Check registered sellers
   const regSeller = allSellers.find(s => s.id === car.sellerId);
   if (regSeller) {
     sellerUser = users.find(u => u.phone && regSeller.phone && u.phone.replace(/[\s\-]/g, '').includes(regSeller.phone.replace(/[\s\-]/g, '').slice(-8)));
   }
 
-  // For base cars, create a fake user ID based on sellerId
   const sellerUserId = sellerUser ? sellerUser.id : 'SELLER-' + car.sellerId;
 
   if (currentUser.id === sellerUserId) {
@@ -174,21 +64,27 @@ function openMessageSellerModal(carId, carName) {
     return;
   }
 
-  // Create or get conversation
-  const convo = getOrCreateConversation(currentUser.id, sellerUserId, carId);
-
-  // Show inline message modal
-  showMessageModal(convo, currentUser, sellerUserId, carName);
+  // Show inline message modal directly (create conversation on first message)
+  showMessageModal(null, currentUser, sellerUserId, carName, carId);
 }
 
-function showMessageModal(convo, currentUser, recipientId, carName) {
+async function showMessageModal(convo, currentUser, recipientId, carName, carId = null) {
   let modal = document.getElementById('message-modal');
   if (modal) modal.remove();
 
-  const convoMessages = getConversationMessages(convo.id);
-  const users = typeof getUsers === 'function' ? getUsers() : [];
-  const recipientUser = users.find(u => u.id === recipientId);
-  const recipientName = recipientUser ? recipientUser.username : 'Seller';
+  let convoMessages = [];
+  let recipientName = 'Seller';
+  let conversationId = convo ? convo._id : null;
+
+  if (conversationId) {
+    const data = await fetchApi(`/api/messages/conversations/${conversationId}`);
+    if (data.success) {
+      convoMessages = data.messages || [];
+      const users = typeof getUsers === 'function' ? getUsers() : [];
+      const recipientUser = users.find(u => u.id === recipientId);
+      if (recipientUser) recipientName = recipientUser.username;
+    }
+  }
 
   modal = document.createElement('div');
   modal.id = 'message-modal';
@@ -211,7 +107,7 @@ function showMessageModal(convo, currentUser, recipientId, carName) {
         ${convoMessages.length === 0 ? '<p class="msg-empty">Start a conversation with the seller</p>' :
           convoMessages.map(m => `
             <div class="msg-bubble ${m.senderId === currentUser.id ? 'msg-sent' : 'msg-received'}">
-              <p>${escapeHtml(m.body)}</p>
+              <p>${escapeHtml(m.content)}</p>
               <span class="msg-time">${formatMsgTime(m.createdAt)}${m.senderId === currentUser.id && m.readAt ? ' · Read' : ''}</span>
             </div>
           `).join('')}
@@ -229,9 +125,6 @@ function showMessageModal(convo, currentUser, recipientId, carName) {
   document.body.appendChild(modal);
   requestAnimationFrame(() => modal.classList.add('open'));
   document.body.style.overflow = 'hidden';
-
-  // Mark as read
-  markMessagesAsRead(convo.id, currentUser.id);
 
   // Scroll to bottom
   const body = document.getElementById('msg-modal-body');
@@ -252,29 +145,40 @@ function showMessageModal(convo, currentUser, recipientId, carName) {
   });
 
   // Send
-  document.getElementById('msg-send-form').addEventListener('submit', e => {
+  document.getElementById('msg-send-form').addEventListener('submit', async e => {
     e.preventDefault();
     const input = document.getElementById('msg-input');
     const text = input.value.trim();
     if (!text) return;
 
-    sendMessage(convo.id, currentUser.id, recipientId, text, convo.listingId);
-    input.value = '';
+    const data = await fetchApi('/api/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        recipientId,
+        content: text,
+        carId: convo ? convo.carId : carId,
+        carName: convo ? convo.carName : carName,
+      })
+    });
 
-    // Add bubble
-    const emptyMsg = body.querySelector('.msg-empty');
-    if (emptyMsg) emptyMsg.remove();
+    if (data.success) {
+      if (!conversationId) conversationId = data.conversationId;
+      input.value = '';
 
-    const bubble = document.createElement('div');
-    bubble.className = 'msg-bubble msg-sent';
-    bubble.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">Just now</span>`;
-    body.appendChild(bubble);
-    body.scrollTop = body.scrollHeight;
+      // Add bubble
+      const emptyMsg = body.querySelector('.msg-empty');
+      if (emptyMsg) emptyMsg.remove();
 
-    showToast('Message sent!', 'success');
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble msg-sent';
+      bubble.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">Just now</span>`;
+      body.appendChild(bubble);
+      body.scrollTop = body.scrollHeight;
+    } else {
+      showToast(data.error || 'Failed to send message.', 'error');
+    }
   });
 
-  // Focus input
   document.getElementById('msg-input').focus();
 }
 
@@ -299,7 +203,7 @@ function formatMsgTime(isoStr) {
 // ============================================
 // MESSAGING INBOX PAGE
 // ============================================
-function initMessagingPage() {
+async function initMessagingPage() {
   if (!isLoggedIn()) {
     showAuthGate();
     return;
@@ -309,7 +213,13 @@ function initMessagingPage() {
   const container = document.getElementById('messaging-container');
   if (!container) return;
 
-  const convos = getUserConversations(currentUser.id);
+  const data = await fetchApi('/api/messages/conversations');
+  if (!data.success) {
+    container.innerHTML = `<div class="empty-state"><h3>Error loading messages</h3></div>`;
+    return;
+  }
+
+  const convos = data.conversations || [];
 
   if (convos.length === 0) {
     container.innerHTML = `
@@ -338,17 +248,17 @@ function initMessagingPage() {
         </div>
         <div class="inbox-list" id="inbox-list">
           ${convos.map(c => `
-            <div class="inbox-item ${c.unreadCount > 0 ? 'unread' : ''}" data-convo-id="${c.id}" role="button" tabindex="0">
+            <div class="inbox-item ${c.unreadCount > 0 ? 'unread' : ''}" data-convo-id="${c._id}" role="button" tabindex="0">
               <div class="inbox-item-avatar">${c.otherUser.username.charAt(0).toUpperCase()}</div>
               <div class="inbox-item-info">
                 <div class="inbox-item-name">
                   ${c.otherUser.username}
                   ${c.unreadCount > 0 ? `<span class="nav-badge">${c.unreadCount}</span>` : ''}
                 </div>
-                ${c.listingInfo ? `<div class="inbox-item-listing">${c.listingInfo.name}</div>` : ''}
-                <div class="inbox-item-preview">${c.lastMessage ? escapeHtml(c.lastMessage.body).substring(0, 60) : 'No messages yet'}</div>
+                ${c.carName ? `<div class="inbox-item-listing">${c.carName}</div>` : ''}
+                <div class="inbox-item-preview">${c.lastMessagePreview || 'No messages yet'}</div>
               </div>
-              <div class="inbox-item-time">${c.lastMessage ? formatMsgTime(c.lastMessage.createdAt) : ''}</div>
+              <div class="inbox-item-time">${c.lastMessageAt ? formatMsgTime(c.lastMessageAt) : ''}</div>
             </div>
           `).join('')}
         </div>
@@ -370,6 +280,8 @@ function initMessagingPage() {
       document.querySelectorAll('.inbox-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       item.classList.remove('unread');
+      const badge = item.querySelector('.nav-badge');
+      if (badge) badge.remove();
     });
   });
 
@@ -387,22 +299,25 @@ function initMessagingPage() {
   }
 }
 
-function openInboxConversation(convoId, currentUser) {
+async function openInboxConversation(convoId, currentUser) {
   const chatArea = document.getElementById('inbox-chat');
   if (!chatArea) return;
 
-  const convoMessages = getConversationMessages(convoId);
-  const convos = getConversations();
-  const convo = convos.find(c => c.id === convoId);
-  if (!convo) return;
+  chatArea.innerHTML = `<div class="inbox-chat-empty"><p>Loading messages...</p></div>`;
 
-  const users = typeof getUsers === 'function' ? getUsers() : [];
-  const otherUserId = convo.user1 === currentUser.id ? convo.user2 : convo.user1;
-  const otherUser = users.find(u => u.id === otherUserId);
-  const otherName = otherUser ? otherUser.username : 'User';
+  const data = await fetchApi(`/api/messages/conversations/${convoId}`);
+  if (!data.success) {
+    chatArea.innerHTML = `<div class="inbox-chat-empty"><p>Error loading messages</p></div>`;
+    return;
+  }
 
-  // Mark as read
-  markMessagesAsRead(convoId, currentUser.id);
+  const convoMessages = data.messages || [];
+  const convo = data.conversation;
+
+  const otherUserId = convo.participantIds.find(id => id !== currentUser.id);
+  const otherName = convoMessages.length > 0
+    ? (convoMessages[0].senderId === otherUserId ? convoMessages[0].senderName : convoMessages[0].recipientName)
+    : 'User';
 
   chatArea.innerHTML = `
     <div class="inbox-chat-header">
@@ -413,7 +328,7 @@ function openInboxConversation(convoId, currentUser) {
         <div class="msg-modal-avatar">${otherName.charAt(0).toUpperCase()}</div>
         <div>
           <h3>${otherName}</h3>
-          ${convo.listingId ? '<span class="inbox-chat-status">Related to listing</span>' : ''}
+          ${convo.carName ? `<span class="inbox-chat-status">${convo.carName}</span>` : ''}
         </div>
       </div>
     </div>
@@ -421,7 +336,7 @@ function openInboxConversation(convoId, currentUser) {
       ${convoMessages.length === 0 ? '<p class="msg-empty">No messages yet. Start the conversation!</p>' :
         convoMessages.map(m => `
           <div class="msg-bubble ${m.senderId === currentUser.id ? 'msg-sent' : 'msg-received'}">
-            <p>${escapeHtml(m.body)}</p>
+            <p>${escapeHtml(m.content)}</p>
             <span class="msg-time">${formatMsgTime(m.createdAt)}${m.senderId === currentUser.id && m.readAt ? ' · Read' : ''}</span>
           </div>
         `).join('')}
@@ -454,23 +369,36 @@ function openInboxConversation(convoId, currentUser) {
   chatArea.classList.add('active-mobile');
 
   // Send message
-  document.getElementById('inbox-chat-form').addEventListener('submit', e => {
+  document.getElementById('inbox-chat-form').addEventListener('submit', async e => {
     e.preventDefault();
     const input = document.getElementById('inbox-msg-input');
     const text = input.value.trim();
     if (!text) return;
 
-    sendMessage(convoId, currentUser.id, otherUserId, text, convo.listingId);
-    input.value = '';
+    const postData = await fetchApi('/api/messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        recipientId: otherUserId,
+        content: text,
+        carId: convo.carId,
+        carName: convo.carName,
+      })
+    });
 
-    const emptyEl = messagesDiv.querySelector('.msg-empty');
-    if (emptyEl) emptyEl.remove();
+    if (postData.success) {
+      input.value = '';
 
-    const bubble = document.createElement('div');
-    bubble.className = 'msg-bubble msg-sent';
-    bubble.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">Just now</span>`;
-    messagesDiv.appendChild(bubble);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      const emptyEl = messagesDiv.querySelector('.msg-empty');
+      if (emptyEl) emptyEl.remove();
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble msg-sent';
+      bubble.innerHTML = `<p>${escapeHtml(text)}</p><span class="msg-time">Just now</span>`;
+      messagesDiv.appendChild(bubble);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } else {
+      showToast(postData.error || 'Failed to send message.', 'error');
+    }
   });
 
   document.getElementById('inbox-msg-input')?.focus();

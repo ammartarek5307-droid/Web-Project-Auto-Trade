@@ -9,17 +9,42 @@ const generateToken = (userId) => {
 };
 
 // ============================================
+// SERVER-SIDE VALIDATION HELPERS
+// ============================================
+function validateUsernameFormat(username) {
+  if (!username || username.length < 3 || username.length > 20) return false;
+  return /^[a-zA-Z0-9_]+$/.test(username);
+}
+
+function validatePhoneFormat(phone) {
+  const cleaned = phone.replace(/[\s\-()]/g, '');
+  const egyptian = /^(\+20|0020|0)?(10|11|12|15)\d{8}$/;
+  const intl = /^\+?\d{8,15}$/;
+  return egyptian.test(cleaned) || intl.test(cleaned);
+}
+
+// ============================================
 // POST /api/auth/register
 // ============================================
 const registerUser = async (req, res) => {
   try {
     const { username, passwordHash, phone } = req.body;
 
+    // Server-side field validation
     if (!username || !passwordHash || !phone) {
       return res.status(400).json({ success: false, error: 'All fields are required.' });
     }
+    if (!validateUsernameFormat(username)) {
+      return res.status(400).json({ success: false, error: 'Username must be 3–20 characters (letters, numbers, underscores only).' });
+    }
+    if (passwordHash.length < 10) {
+      return res.status(400).json({ success: false, error: 'Invalid password format.' });
+    }
+    if (!validatePhoneFormat(phone)) {
+      return res.status(400).json({ success: false, error: 'Please provide a valid phone number.' });
+    }
 
-    // Check duplicate username
+    // Check duplicate username (case-insensitive)
     const existing = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
     if (existing) {
       return res.status(409).json({ success: false, error: 'This username is already taken. Please choose another.' });
@@ -27,7 +52,7 @@ const registerUser = async (req, res) => {
 
     const newUser = await User.create({
       username: username.trim(),
-      passwordHash,
+      passwordHash, // pre-save hook will bcrypt this
       phone: phone.trim(),
     });
 
@@ -86,17 +111,19 @@ const loginUser = async (req, res) => {
       user.lockedUntil = null;
     }
 
-    // Compare password hash (client sends SHA-256 hash)
-    if (user.passwordHash !== passwordHash) {
+    // ✅ Use bcrypt.compare via the model's matchPassword method
+    const isMatch = await user.matchPassword(passwordHash);
+
+    if (!isMatch) {
       user.loginAttempts = (user.loginAttempts || 0) + 1;
 
       if (user.loginAttempts >= 5) {
         user.lockedUntil = new Date(Date.now() + 300000); // 5 minutes
-        await user.save();
+        await user.save({ validateBeforeSave: false });
         return res.status(429).json({ success: false, error: 'Too many failed attempts. Account locked for 5 minutes.' });
       }
 
-      await user.save();
+      await user.save({ validateBeforeSave: false });
       const remaining = 5 - user.loginAttempts;
       return res.status(401).json({ success: false, error: `Invalid username or password. ${remaining} attempt(s) remaining.` });
     }
@@ -105,7 +132,7 @@ const loginUser = async (req, res) => {
     user.loginAttempts = 0;
     user.lockedUntil = null;
     user.lastLogin = new Date();
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     const token = generateToken(user._id);
 
@@ -190,4 +217,17 @@ const unbanUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe, getAllUsers, banUser, unbanUser };
+// ============================================
+// DELETE /api/auth/users/:id  (admin only)
+// ============================================
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+    return res.json({ success: true, message: 'User deleted successfully.' });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'Server error.' });
+  }
+};
+
+module.exports = { registerUser, loginUser, getMe, getAllUsers, banUser, unbanUser, deleteUser };

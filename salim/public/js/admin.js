@@ -3,14 +3,16 @@
 // ============================================
 // ADMIN API HELPERS
 // ============================================
-const ADMIN_TOKEN = `${ADMIN_USERNAME}:${ADMIN_PASSWORD}`;
+function getAdminToken() {
+  return sessionStorage.getItem('at_admin_token') || '';
+}
 
 async function adminFetch(url, options = {}) {
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'X-Admin-Token': ADMIN_TOKEN,
+      'X-Admin-Token': getAdminToken(),
       ...(options.headers || {}),
     },
   });
@@ -96,7 +98,7 @@ async function loadDBUsers() {
 // ADMIN AUTH
 // ============================================
 function requireAdminAuth() {
-  if (!sessionStorage.getItem('at_admin_logged_in')) {
+  if (!getAdminToken()) {
     window.location.href = '/admin-login';
     return false;
   }
@@ -104,7 +106,7 @@ function requireAdminAuth() {
 }
 
 function adminLogout() {
-  sessionStorage.removeItem('at_admin_logged_in');
+  sessionStorage.removeItem('at_admin_token');
   window.location.href = '/admin-login';
 }
 
@@ -112,7 +114,7 @@ function adminLogout() {
 // ADMIN LOGIN PAGE
 // ============================================
 function initAdminLoginPage() {
-  if (sessionStorage.getItem('at_admin_logged_in')) {
+  if (getAdminToken()) {
     window.location.href = '/admin';
     return;
   }
@@ -131,7 +133,7 @@ function initAdminLoginPage() {
   }
 
   if (form) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async e => {
       e.preventDefault();
       const username = document.getElementById('admin-username').value.trim();
       const password = document.getElementById('admin-password').value;
@@ -140,17 +142,26 @@ function initAdminLoginPage() {
       // Animate button
       if (btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
 
-      setTimeout(() => {
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-          sessionStorage.setItem('at_admin_logged_in', 'true');
+      const testToken = `${username}:${password}`;
+      
+      try {
+        const res = await fetch('/api/cars/stats', {
+          headers: { 'X-Admin-Token': testToken }
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          sessionStorage.setItem('at_admin_token', testToken);
           showToast('Welcome back, Admin!', 'success');
           setTimeout(() => { window.location.href = '/admin'; }, 800);
         } else {
-          if (alert) alert.classList.add('show');
-          if (passInput) passInput.value = '';
-          if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+          throw new Error('Invalid credentials');
         }
-      }, 600);
+      } catch (err) {
+        if (alert) alert.classList.add('show');
+        if (passInput) passInput.value = '';
+        if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+      }
 
       form.querySelectorAll('input').forEach(inp => {
         inp.addEventListener('input', () => { if (alert) alert.classList.remove('show'); }, { once: true });

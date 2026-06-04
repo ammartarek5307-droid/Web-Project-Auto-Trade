@@ -40,17 +40,26 @@ const userSchema = new mongoose.Schema({
   lastLogin: { type: Date, default: null },
 }, { timestamps: true });
 
-// Hash password before save
+// ============================================
+// Hash password (SHA-256 hex sent from client)
+// before storing in the database using bcrypt
+// ============================================
 userSchema.pre('save', async function (next) {
   if (!this.isModified('passwordHash')) return next();
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
-// Method to compare password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  const saltedPassword = enteredPassword + '_autotrade_salt_2026';
-  // We use SHA-256 on client side; on server we just compare the hash
-  return this.passwordHash === enteredPassword; // hash already compared from client
+// ============================================
+// Compare a candidate hash against the stored bcrypt hash
+// ============================================
+userSchema.methods.matchPassword = async function (candidateHash) {
+  return bcrypt.compare(candidateHash, this.passwordHash);
 };
 
 module.exports = mongoose.model('User', userSchema);

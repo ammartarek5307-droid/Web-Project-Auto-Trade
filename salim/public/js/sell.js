@@ -311,6 +311,7 @@ function initSellPage() {
 
   // Uploaded images array (data URLs)
   let uploadedImages = [];
+  let uploadedFiles = []; // Track actual File objects
 
   // ── Searchable dropdowns ──
   let modelSelectWidget;
@@ -384,6 +385,7 @@ function initSellPage() {
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.dataset.index);
         uploadedImages.splice(idx, 1);
+        uploadedFiles.splice(idx, 1);
         renderPhotoGrid();
       });
     });
@@ -401,6 +403,8 @@ function initSellPage() {
         showToast(error, 'error');
         continue;
       }
+
+      uploadedFiles.push(file);
 
       const reader = new FileReader();
       reader.onload = (evt) => {
@@ -472,47 +476,39 @@ function initSellPage() {
       else if (phone.startsWith('0')) phone = '+20' + phone.slice(1);
       else if (!phone.startsWith('+')) phone = '+20' + phone;
 
-      // Use first uploaded image as primary, or fallback
-      const primaryImage = uploadedImages.length > 0
-        ? uploadedImages[0]
-        : `https://loremflickr.com/800/600/car,${makeName.toLowerCase()}`;
-
-      const newCar = {
-        make: makeName,
-        model: modelName,
-        category: form.querySelector('#car-category').value,
-        subType: null,
-        year: form.querySelector('#car-year').value.trim(),
-        mileage: mileageRaw,
-        price: priceRaw,
-        transmission: form.querySelector('#car-transmission').value,
-        fuel: form.querySelector('#car-fuel').value,
-        color: form.querySelector('#car-color') ? form.querySelector('#car-color').value.trim() : '—',
-        engine: form.querySelector('#car-engine') ? form.querySelector('#car-engine').value.trim() : '—',
-        city: form.querySelector('#car-city') ? form.querySelector('#car-city').value.trim() : '',
-        condition: 'Used',
-        description: comment,
-        image: primaryImage,
-        images: uploadedImages.length > 0 ? uploadedImages : [primaryImage],
-        isUserListed: true,
-        sellerId: String(newId),
-        sellerName,
-        sellerPhone: phone,
-      };
-
       // ── Submit to MongoDB API ──
       const token = typeof getAuthToken === 'function' ? getAuthToken() : null;
       const btn = form.querySelector('#submit-listing-btn');
 
       if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
+      const formData = new FormData();
+      formData.append('make', makeName);
+      formData.append('model', modelName);
+      formData.append('category', form.querySelector('#car-category').value);
+      formData.append('year', form.querySelector('#car-year').value.trim());
+      formData.append('mileage', mileageRaw);
+      formData.append('price', priceRaw);
+      formData.append('transmission', form.querySelector('#car-transmission').value);
+      formData.append('fuel', form.querySelector('#car-fuel').value);
+      formData.append('color', form.querySelector('#car-color') ? form.querySelector('#car-color').value.trim() : '—');
+      formData.append('engine', form.querySelector('#car-engine') ? form.querySelector('#car-engine').value.trim() : '—');
+      formData.append('city', form.querySelector('#car-city') ? form.querySelector('#car-city').value.trim() : '');
+      formData.append('description', comment);
+      formData.append('sellerName', sellerName);
+      formData.append('sellerPhone', phone);
+      formData.append('sellerId', String(newId));
+
+      uploadedFiles.forEach(file => {
+        formData.append('images', file);
+      });
+
       fetch('/api/cars', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(newCar),
+        body: formData,
       })
         .then(r => r.json())
         .then(data => {

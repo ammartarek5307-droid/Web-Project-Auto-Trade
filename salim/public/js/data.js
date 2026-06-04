@@ -2,12 +2,8 @@
 
 // ============================================
 // ADMIN CREDENTIALS
-// ⚠️ WARNING: These are hardcoded for demo/development purposes only.
-// In a real production app, authentication must be handled server-side.
-// Never expose credentials in client-side JavaScript.
+// Handled server-side.
 // ============================================
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin123';
 
 // ============================================
 // EGYPTIAN SELLERS
@@ -408,22 +404,32 @@ function getReports() {
   catch { return []; }
 }
 
-function addReport(report) {
-  const reports = getReports();
-  report.id = 'RPT-' + Date.now();
-  report.date = new Date().toLocaleString('en-EG');
-  report.status = 'pending';
-  reports.push(report);
-  localStorage.setItem('at_reports', JSON.stringify(reports));
-
-  // Log to activity feed
-  addActivityLog({
-    type: 'report',
-    action: `⚠️ Report — ${report.reason}`,
-    user: report.reporter || 'Anonymous',
-    carName: report.carName || '',
-    status: 'pending',
-  });
+async function addReport(report) {
+  try {
+    const token = localStorage.getItem('at_token');
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(report),
+    });
+    const data = await res.json();
+    if (data.success) {
+      addActivityLog({
+        type: 'report',
+        action: `⚠️ Report — ${report.reason}`,
+        user: report.reporter || 'Anonymous',
+        carName: report.carName || '',
+        status: 'pending',
+      });
+      return true;
+    }
+  } catch (err) {
+    console.error('Failed to submit report', err);
+  }
+  return false;
 }
 
 function updateReport(reportId, changes) {
