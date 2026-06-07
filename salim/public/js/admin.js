@@ -432,7 +432,7 @@ function renderAdminReports() {
   tbody.querySelectorAll('.resolve-remove-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const reportId = btn.dataset.reportId;
-      const carId = parseInt(btn.dataset.carId);
+      const carId = btn.dataset.carId;
       removeUserListing(carId);
       updateReport(reportId, { status: 'resolved' });
       const row = btn.closest('tr');

@@ -99,5 +99,5 @@ function injectThemeToggle() {
 function initTheme() {
   const theme = getThemePreference();
   document.documentElement.setAttribute('data-theme', theme);
-  injectThemeToggle();
+  // injectThemeToggle();  // Disabled: Theme toggle moved to Settings sidebar
 }

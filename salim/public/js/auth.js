@@ -165,6 +165,30 @@ function requireAuth() {
 }
 
 // ============================================
+// GUEST MODE
+// ============================================
+function enterGuestMode() {
+  sessionStorage.setItem('at_guest', 'true');
+  hideAuthGate();
+  updateNavForAuth();
+  if (typeof injectSettingsButton === 'function') injectSettingsButton();
+}
+
+function isGuestMode() {
+  return sessionStorage.getItem('at_guest') === 'true' && !isLoggedIn();
+}
+
+function requireAuthOrGuest() {
+  if (isLoggedIn()) return true;
+  if (isGuestMode()) {
+    if (typeof showToast === 'function') showToast(t('general.guest_toast') || 'You must log in to perform this action.', 'warning');
+    return false;
+  }
+  showAuthGate();
+  return false;
+}
+
+// ============================================
 // VALIDATION HELPERS
 // ============================================
 function validatePassword(password) {
@@ -275,8 +299,11 @@ function showAuthGate() {
         </form>
 
         <div class="auth-switch">
-          <span id="auth-switch-text">Don't have an account?</span>
-          <button type="button" class="auth-switch-btn" id="auth-switch-btn">Sign Up</button>
+          <span id="auth-switch-text" data-i18n="auth.switch.signup">Don't have an account?</span>
+          <button type="button" class="auth-switch-btn" id="auth-switch-btn" data-i18n="auth.btn.signup">Sign Up</button>
+        </div>
+        <div style="text-align:center; margin-top:1rem;">
+          <button type="button" class="btn btn-sm btn-outline" id="auth-guest-btn" data-i18n="auth.btn.guest">Continue as Guest</button>
         </div>
       </div>
     </div>
@@ -347,6 +374,12 @@ function bindAuthGateEvents() {
     if (err) err.textContent = msg;
   }
 
+  // Guest Mode
+  const guestBtn = document.getElementById('auth-guest-btn');
+  if (guestBtn) {
+    guestBtn.addEventListener('click', enterGuestMode);
+  }
+
   // Switch mode
   switchBtn.addEventListener('click', () => {
     clearAuthErrors();
@@ -354,17 +387,17 @@ function bindAuthGateEvents() {
     if (isLoginMode) {
       loginForm.style.display = '';
       signupForm.style.display = 'none';
-      title.textContent = 'Welcome Back';
-      subtitle.textContent = 'Sign in to access the marketplace';
-      switchText.textContent = "Don't have an account?";
-      switchBtn.textContent = 'Sign Up';
+      title.textContent = t ? t('auth.title.login') : 'Welcome Back';
+      subtitle.textContent = t ? t('auth.subtitle.login') : 'Sign in to access the marketplace';
+      switchText.textContent = t ? t('auth.switch.signup') : "Don't have an account?";
+      switchBtn.textContent = t ? t('auth.btn.signup') : 'Sign Up';
     } else {
       loginForm.style.display = 'none';
       signupForm.style.display = '';
-      title.textContent = 'Create Account';
-      subtitle.textContent = 'Join AutoTrade today';
-      switchText.textContent = 'Already have an account?';
-      switchBtn.textContent = 'Log In';
+      title.textContent = t ? t('auth.title.signup') : 'Create Account';
+      subtitle.textContent = t ? t('auth.subtitle.signup') : 'Join AutoTrade today';
+      switchText.textContent = t ? t('auth.switch.login') : 'Already have an account?';
+      switchBtn.textContent = t ? t('auth.btn.login') : 'Log In';
     }
   });
 
@@ -387,6 +420,14 @@ function bindAuthGateEvents() {
 
     if (result.success) {
       setCurrentUser(result.user);
+      
+      // Handle Admin routing
+      if (result.user.role === 'admin') {
+        if (typeof showToast === 'function') showToast('Welcome Admin!', 'success');
+        setTimeout(() => { window.location.href = '/admin'; }, 600);
+        return;
+      }
+      
       if (typeof showToast === 'function') showToast(`Welcome back, ${result.user.username}!`, 'success');
 
       // Apply theme
@@ -397,6 +438,7 @@ function bindAuthGateEvents() {
 
       hideAuthGate();
       updateNavForAuth();
+      if (typeof injectSettingsButton === 'function') injectSettingsButton();
     } else {
       showAuthError(result.error);
       btn.disabled = false;
@@ -469,18 +511,20 @@ function updateNavForAuth() {
   const navLinks = document.getElementById('nav-links');
   if (!navLinks) return;
 
-  // Remove existing auth nav items
-  navLinks.querySelectorAll('.nav-auth-item').forEach(el => el.remove());
+  // We no longer add the user menu/logout here; it's handled by settings sidebar.
+  // We just need to add the Inbox if logged in.
+  const oldInbox = document.getElementById('nav-inbox');
+  if (oldInbox) oldInbox.remove();
 
   const user = getCurrentUser();
 
   if (user) {
-    // Add user menu items
+    // Add Inbox link
     const inboxLink = document.createElement('a');
     inboxLink.href = '/messaging';
     inboxLink.className = 'nav-auth-item';
     inboxLink.id = 'nav-inbox';
-    inboxLink.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Inbox';
+    inboxLink.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span data-i18n="nav.inbox">Inbox</span>';
 
     // Count unread
     const unread = getUnreadCount(user.id);
@@ -488,25 +532,13 @@ function updateNavForAuth() {
       inboxLink.innerHTML += ` <span class="nav-badge">${unread}</span>`;
     }
 
-    const userBtn = document.createElement('button');
-    userBtn.className = 'nav-auth-item nav-user-btn';
-    userBtn.id = 'nav-user-btn';
-    userBtn.innerHTML = `<span class="nav-user-avatar">${user.username.charAt(0).toUpperCase()}</span><span class="nav-user-name">${user.username}</span>`;
-
-    const logoutBtn = document.createElement('button');
-    logoutBtn.className = 'nav-auth-item nav-logout-btn';
-    logoutBtn.id = 'nav-logout-btn';
-    logoutBtn.textContent = 'Logout';
-    logoutBtn.addEventListener('click', () => {
-      logoutUser();
-      if (typeof showToast === 'function') showToast('You have been logged out.', 'info');
-      showAuthGate();
-      updateNavForAuth();
-    });
-
-    navLinks.appendChild(inboxLink);
-    navLinks.appendChild(userBtn);
-    navLinks.appendChild(logoutBtn);
+    // Insert before settings if settings is there
+    const settingsBtn = document.getElementById('nav-settings-btn');
+    if (settingsBtn) {
+      navLinks.insertBefore(inboxLink, settingsBtn);
+    } else {
+      navLinks.appendChild(inboxLink);
+    }
   }
 }
 
@@ -525,7 +557,7 @@ function initAuthGate() {
   const path = window.location.pathname;
   if (path.endsWith('admin-login') || path.endsWith('admin')) return;
 
-  if (!isLoggedIn()) {
+  if (!isLoggedIn() && !isGuestMode()) {
     showAuthGate();
   } else {
     updateNavForAuth();

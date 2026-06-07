@@ -164,6 +164,37 @@
   margin-top: .5rem;
 }
 
+/* ── Password Wrapper & Show/Hide Button ── */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 4rem !important; /* Make room for the button */
+}
+
+.show-pass-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color .2s var(--ease);
+}
+
+.show-pass-btn:hover {
+  color: var(--color-accent);
+}
+
+
 /* ── Auth Switch ────────────────────────────── */
 .auth-switch {
   text-align: center;

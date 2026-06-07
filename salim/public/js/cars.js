@@ -346,8 +346,8 @@ function createImageCarousel(images, container) {
 // ============================================
 function initDetailsPage() {
   const container = document.getElementById('car-detail-container');
-  const carId = parseInt(getUrlParameter('id'));
-  const car = getAllCars().find(c => c.id === carId);
+  const carIdParam = getUrlParameter('id');
+  const car = getAllCars().find(c => String(c.id) === String(carIdParam));
 
   if (!car || !container) {
     if (container) container.innerHTML = `
@@ -370,6 +370,9 @@ function initDetailsPage() {
   const images = Array.isArray(car.images) && car.images.length > 0
     ? car.images
     : [car.image];
+    
+  const isGuest = typeof isGuestMode === 'function' && isGuestMode();
+  const guestAttrs = isGuest ? `disabled title="${t ? t('general.guest_restricted') : 'Requires an account'}" style="opacity: 0.6; cursor: not-allowed;"` : '';
 
   container.innerHTML = `
     <div class="details-img-wrap" id="car-carousel-area"></div>
@@ -406,15 +409,15 @@ function initDetailsPage() {
 
       <div class="details-actions">
         <button class="btn btn-primary btn-lg w-full" id="detail-contact-btn"
-                data-car-id="${car.id}" data-car-name="${car.make} ${car.model}">
+                data-car-id="${car.id}" data-car-name="${car.make} ${car.model}" ${guestAttrs}>
           Message Seller
         </button>
         <div class="details-action-group">
-          <button class="btn btn-outline btn-lg w-full ${favored ? 'favorited-btn' : ''}" id="detail-fav-btn">
+          <button class="btn btn-outline btn-lg w-full ${favored ? 'favorited-btn' : ''}" id="detail-fav-btn" ${guestAttrs}>
             ${favored ? 'Remove from Favorites' : 'Add to Favorites'}
           </button>
           <button class="btn btn-report w-full" id="detail-report-btn"
-                  data-car-id="${car.id}" data-car-name="${car.make} ${car.model}" style="margin:0;">
+                  data-car-id="${car.id}" data-car-name="${car.make} ${car.model}" style="margin:0;" ${guestAttrs}>
             Report this ad
           </button>
         </div>
@@ -444,13 +447,17 @@ function initDetailsPage() {
   }
 
   // Contact seller (internal messaging)
-  document.getElementById('detail-contact-btn').addEventListener('click', () => {
+  document.getElementById('detail-contact-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof requireAuthOrGuest === 'function' && !requireAuthOrGuest()) return;
     openContactModal(car.id, `${car.make} ${car.model}`);
   });
 
   // Favorites toggle
   const favBtn = document.getElementById('detail-fav-btn');
-  favBtn.addEventListener('click', () => {
+  favBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof requireAuthOrGuest === 'function' && !requireAuthOrGuest()) return;
     if (isFavorited(car.id)) {
       removeFavorite(car.id);
       favBtn.textContent = 'Add to Favorites';
@@ -465,7 +472,9 @@ function initDetailsPage() {
   });
 
   // Report car
-  document.getElementById('detail-report-btn').addEventListener('click', () => {
+  document.getElementById('detail-report-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof requireAuthOrGuest === 'function' && !requireAuthOrGuest()) return;
     openReportModal(car.id, `${car.make} ${car.model}`);
   });
 
