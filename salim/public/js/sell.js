@@ -313,6 +313,20 @@ function initSellPage() {
   let uploadedImages = [];
   let uploadedFiles = []; // Track actual File objects
 
+  // Guest Mode Check
+  const btn = form ? form.querySelector('#submit-listing-btn') : null;
+  if (btn && typeof isGuestMode === 'function' && isGuestMode()) {
+    btn.disabled = true;
+    btn.title = t ? t('general.guest_restricted') : 'Requires an account';
+    btn.style.opacity = '0.6';
+    btn.style.cursor = 'not-allowed';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof showToast === 'function') showToast(t('general.guest_toast') || 'You must log in to perform this action.', 'warning');
+      if (typeof showAuthGate === 'function') showAuthGate();
+    });
+  }
+
   // ── Searchable dropdowns ──
   let modelSelectWidget;
   const makeSelectWidget = createSearchableSelect({
@@ -451,9 +465,11 @@ function initSellPage() {
       e.preventDefault();
 
       // Check auth
-      if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
+      if (typeof requireAuthOrGuest === 'function') {
+        if (!requireAuthOrGuest()) return;
+      } else if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
         if (typeof showAuthGate === 'function') showAuthGate();
-        showToast('Please log in to post an ad.', 'warning');
+        showToast(t ? t('general.guest_toast') : 'Please log in to post an ad.', 'warning');
         return;
       }
 

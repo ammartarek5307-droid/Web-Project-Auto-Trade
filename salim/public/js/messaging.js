@@ -41,7 +41,7 @@ function openMessageSellerModal(carId, carName) {
   const currentUser = getCurrentUser();
 
   // Find seller user
-  const car = getAllCars().find(c => c.id === carId || c.id === parseInt(carId));
+  const car = getAllCars().find(c => String(c.id) === String(carId));
   if (!car) {
     showToast('Listing not found.', 'error');
     return;

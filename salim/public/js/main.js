@@ -54,11 +54,13 @@ function injectContactModal() {
 }
 
 function openContactModal(carId, carName) {
+  if (typeof requireAuthOrGuest === 'function' && !requireAuthOrGuest()) return;
+
   // Redirect to internal messaging
   if (typeof openMessageSellerModal === 'function') {
     openMessageSellerModal(carId, carName);
   } else {
-    showToast('Please log in to message the seller.', 'info');
+    showToast(t('general.guest_toast') || 'Please log in to message the seller.', 'info');
     if (typeof showAuthGate === 'function') showAuthGate();
   }
 }
@@ -89,6 +91,9 @@ function createCarCard(car) {
 
   // Use first image if multiple images exist
   const displayImage = Array.isArray(car.images) && car.images.length > 0 ? car.images[0] : car.image;
+  
+  const isGuest = typeof isGuestMode === 'function' && isGuestMode();
+  const guestAttrs = isGuest ? `disabled title="${t ? t('general.guest_restricted') : 'Requires an account'}" style="opacity: 0.6; cursor: not-allowed;"` : '';
 
   return `
     <article class="card" data-car-id="${car.id}">
@@ -135,7 +140,7 @@ function createCarCard(car) {
           <button class="btn btn-outline contact-seller-btn"
                   data-car-id="${car.id}"
                   data-car-name="${car.make} ${car.model}"
-                  id="contact-btn-${car.id}">Message</button>
+                  id="contact-btn-${car.id}" ${guestAttrs}>Message</button>
         </div>
       </div>
     </article>
@@ -149,8 +154,8 @@ function bindCardEvents(container) {
   container.querySelectorAll('.card-fav-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.preventDefault();
-      const carId = parseInt(btn.dataset.carId);
-      const car = getAllCars().find(c => c.id === carId);
+      const carId = btn.dataset.carId;
+      const car = getAllCars().find(c => String(c.id) === String(carId));
       if (!car) return;
       if (isFavorited(car.id)) {
         removeFavorite(car.id);
@@ -169,6 +174,7 @@ function bindCardEvents(container) {
   container.querySelectorAll('.contact-seller-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.preventDefault();
+      if (typeof requireAuthOrGuest === 'function' && !requireAuthOrGuest()) return;
       openContactModal(parseInt(btn.dataset.carId), btn.dataset.carName);
     });
   });

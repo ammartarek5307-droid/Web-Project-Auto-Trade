@@ -20,7 +20,7 @@ function saveBids(bids) {
 // ── Get bids for a listing ──
 function getListingBids(listingId) {
   return getBids()
-    .filter(b => b.listingId === listingId || b.listingId === parseInt(listingId))
+    .filter(b => String(b.listingId) === String(listingId))
     .sort((a, b) => b.amount - a.amount);
 }
 
@@ -33,7 +33,7 @@ function getHighestBid(listingId) {
 // ── Place a bid ──
 function placeBid(listingId, bidderId, bidderName, amount) {
   const bids = getBids();
-  const car = getAllCars().find(c => c.id === listingId || c.id === parseInt(listingId));
+  const car = getAllCars().find(c => String(c.id) === String(listingId));
 
   if (!car) {
     return { success: false, error: 'Listing not found.' };
@@ -74,7 +74,7 @@ function placeBid(listingId, bidderId, bidderName, amount) {
 
   const newBid = {
     id: 'BID-' + Date.now(),
-    listingId: parseInt(listingId) || listingId,
+    listingId: isNaN(listingId) ? listingId : parseInt(listingId),
     bidderId,
     bidderName,
     amount,
@@ -141,16 +141,17 @@ function renderBiddingSection(car, container) {
         </div>
       </div>
 
-      ${currentUser ? `
+      ${currentUser || (typeof isGuestMode === 'function' && isGuestMode()) ? `
       <form class="bid-form" id="bid-form">
         <div class="bid-input-row">
           <div class="bid-input-group">
             <span class="bid-currency">EGP</span>
             <input type="number" id="bid-amount" class="form-control bid-input"
                    placeholder="${minBid.toLocaleString('en-US')}"
-                   min="${minBid}" step="1000" required>
+                   min="${minBid}" step="1000" required ${currentUser ? '' : 'disabled'}>
           </div>
-          <button type="submit" class="btn btn-primary bid-submit-btn" id="bid-submit-btn">
+          <button type="${currentUser ? 'submit' : 'button'}" class="btn btn-primary bid-submit-btn" id="bid-submit-btn"
+                  ${currentUser ? '' : `title="${t ? t('general.guest_restricted') : 'Requires an account'}" style="opacity:0.6; cursor:not-allowed;" onclick="if(typeof showToast==='function') showToast(typeof t==='function'?t('general.guest_toast'):'You must log in.','warning'); if(typeof showAuthGate==='function') showAuthGate();"`}>
             Place Bid
           </button>
         </div>
