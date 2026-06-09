@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Your Car | AutoTrade</title>
+  <meta name="description" content="Post your car ad on AutoTrade. Fast, easy, and free. Connect with thousands of buyers today.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/messaging.css">
+  <script src="/js/data.js" defer></script>
+  <script src="/js/auth.js" defer></script>
+  <script src="/js/i18n.js" defer></script>
+  <script src="/js/settings.js" defer></script>
+  <script src="/js/theme.js" defer></script>
+  <script src="/js/messaging.js" defer></script>
+  <script src="/js/main.js" defer></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/js/sell.js" defer></script>
+</head>
+<body>
+  <header style="position:sticky;">
+    <div class="container nav-container">
+      <a href="/" class="logo">Auto<span>Trade</span></a>
+      <button class="menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      <nav class="nav-links" id="nav-links">
+        <a href="/" data-i18n="nav.home">Home</a>
+        <a href="/categories?type=all" data-i18n="nav.browse">Browse Cars</a>
+        <a href="/favorites" data-i18n="nav.favorites">Favorites</a>
+        <a href="/sell" class="active nav-sell-btn" data-i18n="nav.sell">Sell My Car</a>
+      </nav>
+    </div>
+  </header>
+  <div class="page-hero" style="margin-top:0;">
+    <div class="container">
+      <h1 data-i18n="hero.btn.sell">Post Your Ad</h1>
+      <p data-i18n="hero.subtitle2">Enter the details below and your car will be visible to thousands of buyers</p>
+    </div>
+  </div>
+  <main class="sell-page-layout">
+    <div class="form-card">
+      <h2 data-i18n="sell.form.title">Listing Details</h2>
+      <p class="form-desc" data-i18n="sell.form.desc">Fields marked with <span style="color:var(--color-danger);">*</span> are required.</p>
+      <form id="sell-car-form" novalidate>
+        <p class="form-section-title" data-i18n="sell.section.vehicle">Vehicle Information</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="car-make"><span data-i18n="car.specs.make">Make</span> <span class="required">*</span></label>
+            <input type="text" id="car-make" class="form-control" placeholder="e.g. Toyota" data-i18n-placeholder="sell.ph.make" autocomplete="off" required>
+            <span class="form-error" id="err-car-make"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-model"><span data-i18n="car.specs.model">Model</span> <span class="required">*</span></label>
+            <input type="text" id="car-model" class="form-control" placeholder="e.g. Corolla" data-i18n-placeholder="sell.ph.model" autocomplete="off" required>
+            <span class="form-error" id="err-car-model"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-category"><span data-i18n="cat.section.label">Category</span> <span class="required">*</span></label>
+            <select id="car-category" class="form-control" required>
+              <option value="" disabled selected data-i18n="sell.select.category">Select Category</option>
+              <option value="suv" data-i18n="cat.suv.title">SUV</option>
+              <option value="sedan" data-i18n="cat.sedan.title">Sedan</option>
+              <option value="hatchback" data-i18n="cat.hatch.title">Hatchback</option>
+            </select>
+            <span class="form-error" id="err-car-category"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-year"><span data-i18n="sell.label.year">Year of Manufacture</span> <span class="required">*</span></label>
+            <input type="number" id="car-year" class="form-control" placeholder="e.g. 2021" data-i18n-placeholder="sell.ph.year" min="1990" max="2026" required>
+            <span class="form-error" id="err-car-year"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-mileage"><span data-i18n="sell.label.mileage">Mileage (km)</span> <span class="required">*</span></label>
+            <input type="text" id="car-mileage" class="form-control" placeholder="e.g. 45000" data-i18n-placeholder="sell.ph.mileage" required>
+            <span class="form-error" id="err-car-mileage"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-price"><span data-i18n="sell.label.price">Asking Price (EGP)</span> <span class="required">*</span></label>
+            <input type="text" id="car-price" class="form-control" placeholder="e.g. 450000" data-i18n-placeholder="sell.ph.price" required>
+            <span class="form-error" id="err-car-price"></span>
+          </div>
+          <div class="form-group">
+            <label for="car-transmission" data-i18n="car.specs.transmission">Transmission</label>
+            <select id="car-transmission" class="form-control">
+              <option value="Automatic" data-i18n="sell.trans.auto">Automatic</option>
+              <option value="Manual" data-i18n="sell.trans.manual">Manual</option>
+              <option value="CVT" data-i18n="sell.trans.cvt">CVT</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="car-fuel" data-i18n="car.specs.fuel">Fuel Type</label>
+            <select id="car-fuel" class="form-control">
+              <option value="Gasoline" data-i18n="sell.fuel.gasoline">Gasoline</option>
+              <option value="Diesel" data-i18n="sell.fuel.diesel">Diesel</option>
+              <option value="Electric" data-i18n="sell.fuel.electric">Electric</option>
+              <option value="Hybrid" data-i18n="sell.fuel.hybrid">Hybrid</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="car-color" data-i18n="car.specs.color">Color</label>
+            <input type="text" id="car-color" class="form-control" placeholder="e.g. White, Black, Grey" data-i18n-placeholder="sell.ph.color">
+          </div>
+          <div class="form-group">
+            <label for="car-engine" data-i18n="car.specs.engine">Engine</label>
+            <input type="text" id="car-engine" class="form-control" placeholder="e.g. 1.6L 4-Cylinder" data-i18n-placeholder="sell.ph.engine">
+          </div>
+          <div class="form-group">
+            <label for="car-city" data-i18n="car.specs.city">City</label>
+            <input type="text" id="car-city" class="form-control" placeholder="e.g. Cairo, Nasr City, 6th of October" data-i18n-placeholder="sell.ph.city" autocomplete="off">
+          </div>
+        </div>
+        <hr class="form-divider">
+        <p class="form-section-title" data-i18n="sell.section.location">Approximate Location</p>
+        <div class="form-group full-width" style="margin-bottom:1.5rem;">
+          <label data-i18n="sell.label.map">Click on the map to set your car's approximate location</label>
+          <div class="sell-map-container">
+            <div id="sell-map"></div>
+            <div class="sell-map-status" id="sell-map-status">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="sell.map.set">Location set</span>
+            </div>
+          </div>
+          <input type="hidden" id="location-lat" value="">
+          <input type="hidden" id="location-lng" value="">
+          <span class="sell-map-hint" data-i18n="sell.map.hint">🔒 Only a 2 km radius area will be shown to buyers — your exact location stays private.</span>
+        </div>
+        <hr class="form-divider">
+        <p class="form-section-title" data-i18n="car.seller.notes">Seller's Note</p>
+        <div class="form-group full-width" style="margin-bottom:1.5rem;">
+          <label for="car-comment" data-i18n="sell.label.desc">Additional Description (Optional)</label>
+          <textarea id="car-comment" class="form-control" rows="3" placeholder="e.g. Car is well-maintained, one owner, regular dealership maintenance." data-i18n-placeholder="sell.ph.desc" maxlength="500"></textarea>
+          <span style="font-size:.75rem; color:var(--text-muted); margin-top:.25rem; display:block;" data-i18n="sell.hint.desc">This description appears on the car's detail page for buyers.</span>
+        </div>
+        <hr class="form-divider">
+        <p class="form-section-title" data-i18n="sell.section.photos">Car Photos</p>
+        <div class="form-group full-width" style="margin-bottom:1.5rem;">
+          <div class="photo-upload-area" id="photo-upload-area">
+            <input type="file" id="car-photo-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple aria-label="Upload car photos">
+            <span class="photo-upload-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </span>
+            <p data-i18n="sell.photo.text"><strong>Click to upload</strong> or drag and drop images</p>
+            <p style="font-size:.78rem; margin-top:.3rem; color:var(--text-muted);" data-i18n="sell.photo.hint">JPEG, PNG, WebP, GIF — up to 10MB each — max 8 photos</p>
+          </div>
+          <div class="multi-photo-grid" id="multi-photo-grid" style="display:none;"></div>
+          <span class="form-error" id="err-car-photo" style="display:block; margin-top:.5rem;"></span>
+        </div>
+        <hr class="form-divider">
+        <p class="form-section-title" data-i18n="sell.section.contact">Contact Details</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="seller-name"><span data-i18n="sell.label.name">Full Name</span> <span class="required">*</span></label>
+            <input type="text" id="seller-name" class="form-control" placeholder="Full Name" data-i18n-placeholder="sell.ph.name" required autocomplete="name">
+            <span class="form-error" id="err-seller-name"></span>
+            <span class="field-hint" id="hint-seller-name" data-i18n="sell.hint.name">Only letters and spaces are allowed.</span>
+          </div>
+          <div class="form-group">
+            <label for="seller-phone"><span data-i18n="auth.label.phone">Phone Number</span> <span class="required">*</span></label>
+            <input type="tel" id="seller-phone" class="form-control" placeholder="e.g. 01012345678" data-i18n-placeholder="sell.ph.phone" required autocomplete="tel">
+            <span class="form-error" id="err-seller-phone"></span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-listing-btn" style="margin-top:2rem;" data-i18n="sell.btn.submit">
+          Publish Ad
+        </button>
+      </form>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-bottom" style="border:none; padding:0;">
+        <p data-i18n="footer.rights">© 2026 AutoTrade. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
